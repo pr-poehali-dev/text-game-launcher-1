@@ -1,9 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
+import { GameState, Task, LEVELS } from '../types/game';
+import { tasks } from '../data/tasks';
 
 const Index = () => {
-  const [output, setOutput] = useState<string[]>(['Добро пожаловать в терминальную игру!', 'Введите команду для начала...']);
+  const [output, setOutput] = useState<string[]>(['=== Школьный Сисадмин — Москва ===', 'Добро пожаловать в игру!', 'Выберите уровень сложности:', '1. Новичок', '2. Опытный', '3. Профессионал', 'Введите номер уровня...']);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [gameState, setGameState] = useState<GameState>({
+    currentLevel: null,
+    currentTask: null,
+    score: 0,
+    isGameStarted: false,
+    showingHint: false
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -37,19 +46,96 @@ const Index = () => {
     }, 300);
   };
 
+  const getRandomTask = (level: number): Task => {
+    const levelTasks = tasks.filter(task => task.level === level);
+    return levelTasks[Math.floor(Math.random() * levelTasks.length)];
+  };
+
   const processCommand = (command: string) => {
-    // Временная логика - заменится на твой код игры
-    const lowerCommand = command.toLowerCase();
-    
-    if (lowerCommand === 'help' || lowerCommand === 'помощь') {
-      setOutput(prev => [...prev, 'Доступные команды:', '• help - показать помощь', '• start - начать игру', '• clear - очистить экран']);
-    } else if (lowerCommand === 'start' || lowerCommand === 'старт') {
-      setOutput(prev => [...prev, 'Игра началась! Ожидаем интеграцию твоего кода...']);
-    } else if (lowerCommand === 'clear' || lowerCommand === 'очистить') {
-      setOutput(['Терминал очищен.']);
-    } else {
-      setOutput(prev => [...prev, `Неизвестная команда: ${command}`, 'Введите "help" для получения справки.']);
+    const choice = parseInt(command.trim());
+
+    // Выбор уровня сложности
+    if (!gameState.currentLevel) {
+      if ([1, 2, 3].includes(choice)) {
+        const level = choice;
+        const levelName = LEVELS[level as keyof typeof LEVELS];
+        setGameState(prev => ({ ...prev, currentLevel: level, isGameStarted: true }));
+        setOutput(prev => [...prev, `Вы выбрали уровень: ${levelName}`, '']);
+        
+        // Показываем первую задачу
+        const task = getRandomTask(level);
+        setGameState(prev => ({ ...prev, currentTask: task }));
+        showTask(task);
+        return;
+      } else {
+        setOutput(prev => [...prev, 'Введите 1, 2 или 3 для выбора уровня.']);
+        return;
+      }
     }
+
+    // Игровой процесс
+    if (gameState.currentTask) {
+      if (choice === 0) {
+        // Показать подсказку
+        setOutput(prev => [...prev, `Подсказка: ${gameState.currentTask!.hint}`, '']);
+        setGameState(prev => ({ ...prev, showingHint: true }));
+        return;
+      }
+
+      if (choice >= 1 && choice <= gameState.currentTask.options.length) {
+        if (choice === gameState.currentTask.solution) {
+          setOutput(prev => [...prev, '✅ Правильно! Задача решена.', '']);
+          setGameState(prev => ({ ...prev, score: prev.score + 1 }));
+          
+          // Показываем следующую задачу
+          setTimeout(() => {
+            const nextTask = getRandomTask(gameState.currentLevel!);
+            setGameState(prev => ({ ...prev, currentTask: nextTask, showingHint: false }));
+            showTask(nextTask);
+          }, 1500);
+        } else {
+          setOutput(prev => [...prev, '❌ Неверно, попробуйте снова.', '']);
+        }
+      } else {
+        setOutput(prev => [...prev, 'Введите номер варианта ответа или 0 для подсказки.']);
+      }
+      return;
+    }
+
+    // Команды общего назначения
+    const lowerCommand = command.toLowerCase();
+    if (lowerCommand === 'restart' || lowerCommand === 'заново') {
+      setGameState({
+        currentLevel: null,
+        currentTask: null,
+        score: 0,
+        isGameStarted: false,
+        showingHint: false
+      });
+      setOutput(['=== Школьный Сисадмин — Москва ===', 'Выберите уровень сложности:', '1. Новичок', '2. Опытный', '3. Профессионал', 'Введите номер уровня...']);
+    } else if (lowerCommand === 'score' || lowerCommand === 'счет') {
+      setOutput(prev => [...prev, `Ваш счет: ${gameState.score} правильных ответов`]);
+    } else {
+      setOutput(prev => [...prev, 'Команды: restart (заново), score (счет)']);
+    }
+  };
+
+  const showTask = (task: Task) => {
+    const taskOutput = [
+      `=== ${task.title} ===`,
+      task.description,
+      ''
+    ];
+    
+    task.options.forEach((option, index) => {
+      taskOutput.push(`${index + 1}. ${option}`);
+    });
+    
+    taskOutput.push('0. Показать подсказку');
+    taskOutput.push('');
+    taskOutput.push('Ваш выбор:');
+    
+    setOutput(prev => [...prev, ...taskOutput]);
   };
 
   return (
@@ -57,8 +143,10 @@ const Index = () => {
       <div className="container mx-auto p-4 h-screen flex flex-col">
         {/* Заголовок терминала */}
         <div className="border-b border-gray-700 pb-2 mb-4">
-          <h1 className="text-xl font-bold text-white">TERMINAL GAME v1.0</h1>
-          <p className="text-gray-400 text-sm">Ready for your game integration</p>
+          <h1 className="text-xl font-bold text-white">Школьный Сисадмин — Москва</h1>
+          <p className="text-gray-400 text-sm">
+            {gameState.currentLevel ? `Уровень: ${LEVELS[gameState.currentLevel as keyof typeof LEVELS]} | Счет: ${gameState.score}` : 'Выберите уровень сложности'}
+          </p>
         </div>
 
         {/* Область вывода */}
@@ -96,7 +184,7 @@ const Index = () => {
 
         {/* Статус */}
         <div className="text-xs text-gray-500">
-          Готов к интеграции вашего игрового кода
+          {gameState.isGameStarted ? 'Решайте задачи IT-поддержки московских школ' : 'Игра готова к запуску'}
         </div>
       </div>
     </div>
