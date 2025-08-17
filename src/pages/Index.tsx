@@ -53,18 +53,18 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div className="min-h-screen bg-gray-900 text-gray-100 font-mono">
       <div className="container mx-auto p-4 h-screen flex flex-col">
         {/* Заголовок терминала */}
-        <div className="border-b border-green-800 pb-2 mb-4">
-          <h1 className="text-xl font-bold">TERMINAL GAME v1.0</h1>
-          <p className="text-green-600 text-sm">Ready for your game integration</p>
+        <div className="border-b border-gray-700 pb-2 mb-4">
+          <h1 className="text-xl font-bold text-white">TERMINAL GAME v1.0</h1>
+          <p className="text-gray-400 text-sm">Ready for your game integration</p>
         </div>
 
         {/* Область вывода */}
         <div 
           ref={outputRef}
-          className="flex-1 overflow-y-auto space-y-1 mb-4 p-4 bg-gray-900 rounded border border-green-800"
+          className="flex-1 overflow-y-auto space-y-1 mb-6 p-4 bg-black rounded border border-gray-700"
         >
           {output.map((line, index) => (
             <div key={index} className="whitespace-pre-wrap">
@@ -72,28 +72,30 @@ const Index = () => {
             </div>
           ))}
           {isLoading && (
-            <div className="text-green-600">
+            <div className="text-gray-400">
               <span className="animate-pulse">Обработка команды...</span>
             </div>
           )}
         </div>
 
         {/* Область ввода */}
-        <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-          <span className="text-green-600">$</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-green-400 caret-green-400"
-            placeholder="Введите команду..."
-            disabled={isLoading}
-          />
-        </form>
+        <div className="bg-gray-800 p-3 rounded border border-gray-700 mb-4">
+          <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+            <span className="text-gray-400">$</span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-gray-100 caret-gray-100"
+              placeholder="Введите команду..."
+              disabled={isLoading}
+            />
+          </form>
+        </div>
 
         {/* Статус */}
-        <div className="mt-2 text-xs text-green-700">
+        <div className="text-xs text-gray-500">
           Готов к интеграции вашего игрового кода
         </div>
       </div>
