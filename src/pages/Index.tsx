@@ -155,7 +155,7 @@ const Index = () => {
           className="flex-1 overflow-y-auto space-y-1 mb-6 p-4 bg-black rounded border border-gray-700"
         >
           {output.map((line, index) => (
-            <div key={index} className="whitespace-pre-wrap">
+            <div key={index} className="whitespace-pre-wrap bg-slate-400">
               {line}
             </div>
           ))}
