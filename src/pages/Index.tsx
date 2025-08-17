@@ -152,13 +152,30 @@ const Index = () => {
         {/* Область вывода */}
         <div 
           ref={outputRef}
-          className="flex-1 overflow-y-auto space-y-1 mb-6 p-4 bg-black rounded border border-gray-700"
+          className="flex-1 overflow-y-auto space-y-2 mb-6 p-6 bg-gray-800 rounded-lg border border-gray-600 shadow-inner"
         >
-          {output.map((line, index) => (
-            <div key={index} className="whitespace-pre-wrap bg-transparent">
-              {line}
-            </div>
-          ))}
+          {output.map((line, index) => {
+            const isHeader = line.startsWith('===');
+            const isOption = /^\d+\../.test(line);
+            const isSuccess = line.includes('✅');
+            const isError = line.includes('❌');
+            const isHint = line.startsWith('Подсказка:');
+            const isCommand = line.startsWith('>');
+            
+            return (
+              <div key={index} className={`whitespace-pre-wrap ${
+                isHeader ? 'text-blue-300 font-bold text-lg border-b border-gray-600 pb-1 mb-2' :
+                isOption ? 'text-cyan-300 hover:text-cyan-200 cursor-default pl-2' :
+                isSuccess ? 'text-green-400 font-semibold' :
+                isError ? 'text-red-400 font-semibold' :
+                isHint ? 'text-yellow-300 italic bg-gray-700 p-3 rounded border-l-4 border-yellow-500' :
+                isCommand ? 'text-purple-300 font-medium' :
+                'text-gray-200'
+              }`}>
+                {line}
+              </div>
+            );
+          })}
           {isLoading && (
             <div className="text-gray-400">
               <span className="animate-pulse">Обработка команды...</span>
@@ -167,15 +184,15 @@ const Index = () => {
         </div>
 
         {/* Область ввода */}
-        <div className="bg-gray-800 p-3 rounded border border-gray-700 mb-4">
+        <div className="bg-gray-700 p-4 rounded-lg border border-gray-600 mb-4 shadow-lg">
           <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-            <span className="text-gray-400">$</span>
+            <span className="text-cyan-400 font-bold text-lg">$</span>
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-gray-100 caret-gray-100"
+              className="flex-1 bg-transparent outline-none text-white caret-cyan-400 text-lg font-medium"
               placeholder="Введите команду..."
               disabled={isLoading}
             />
